@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -6,7 +5,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
 import { format } from "date-fns";
-import { CalendarIcon, XCircle, Frown, Meh, Smile, Heart, DropletHalf2 } from "lucide-react";
+import { CalendarIcon, XCircle, Frown, Meh, Smile, Heart, Droplet } from "lucide-react";
 
 const symptoms = [
   { id: "cramps", label: "Cramps", icon: "💫" },
@@ -237,7 +236,7 @@ const LogForm = () => {
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <label className="font-medium flex items-center">
-                          <DropletHalf2 size={16} className="mr-1 text-hercycle-deepPink" />
+                          <Droplet size={16} className="mr-1 text-hercycle-deepPink" />
                           Energy Level
                         </label>
                         <span className="text-sm text-foreground/70">
