@@ -6,6 +6,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
 import { format } from "date-fns";
 import { CalendarIcon, XCircle, Frown, Meh, Smile, Heart, Droplet } from "lucide-react";
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 const symptoms = [
   { id: "cramps", label: "Cramps", icon: "💫" },
@@ -32,12 +35,14 @@ const moods = [
 ];
 
 const flowLevels = [
+  { id: "none", label: "None", color: "bg-gray-200" },
   { id: "light", label: "Light", color: "bg-hercycle-pink/30" },
   { id: "medium", label: "Medium", color: "bg-hercycle-pink/60" },
   { id: "heavy", label: "Heavy", color: "bg-hercycle-deepPink" },
 ];
 
 const LogForm = () => {
+  const { user } = useAuth();
   const [date, setDate] = useState<Date>(new Date());
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
@@ -66,23 +71,123 @@ const LogForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "You need to be logged in to save logs",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsSubmitting(true);
     
-    // In a real app, this would connect to Supabase
-    console.log('Submitting log:', {
-      date,
-      flow,
-      painLevel: painLevel[0],
-      energyLevel: energyLevel[0],
-      symptoms: selectedSymptoms,
-      mood: selectedMood,
-      notes
-    });
-    
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      // Format the date to ISO string but only keep the date part
+      const formattedDate = date.toISOString().split('T')[0];
+      
+      // Prepare the log data
+      const logData = {
+        user_id: user.id,
+        log_date: formattedDate,
+        flow_intensity: flow || 'none',
+        mood: selectedMood,
+        pain_level: painLevel[0],
+        symptoms: selectedSymptoms,
+        notes,
+      };
+      
+      // Check if a log already exists for this date
+      const { data: existingLog } = await supabase
+        .from('period_logs')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('log_date', formattedDate)
+        .maybeSingle();
+      
+      let result;
+      
+      if (existingLog) {
+        // Update existing log
+        result = await supabase
+          .from('period_logs')
+          .update(logData)
+          .eq('id', existingLog.id);
+      } else {
+        // Insert new log
+        result = await supabase
+          .from('period_logs')
+          .insert(logData);
+      }
+      
+      if (result.error) {
+        throw result.error;
+      }
+      
+      // Check if we need to create or update a cycle
+      if (flow && flow !== 'none') {
+        // This is a period day, so check if there's an open cycle or start a new one
+        const { data: openCycle } = await supabase
+          .from('cycles')
+          .select('*')
+          .eq('user_id', user.id)
+          .is('end_date', null)
+          .order('start_date', { ascending: false })
+          .maybeSingle();
+        
+        if (!openCycle) {
+          // Start a new cycle
+          await supabase
+            .from('cycles')
+            .insert({
+              user_id: user.id,
+              start_date: formattedDate,
+            });
+        }
+      } else if (flow === 'none') {
+        // This is not a period day, check if we need to end an open cycle
+        const { data: openCycle } = await supabase
+          .from('cycles')
+          .select('*')
+          .eq('user_id', user.id)
+          .is('end_date', null)
+          .order('start_date', { ascending: false })
+          .maybeSingle();
+        
+        if (openCycle) {
+          const cycleStartDate = new Date(openCycle.start_date);
+          const logDate = new Date(formattedDate);
+          
+          // If the log date is at least 1 day after the start date, end the cycle
+          if (logDate.getTime() - cycleStartDate.getTime() >= 24 * 60 * 60 * 1000) {
+            // Get the last period day before this non-period day
+            const { data: lastPeriodLog } = await supabase
+              .from('period_logs')
+              .select('log_date')
+              .eq('user_id', user.id)
+              .in('flow_intensity', ['light', 'medium', 'heavy'])
+              .lte('log_date', formattedDate)
+              .gt('log_date', openCycle.start_date)
+              .order('log_date', { ascending: false })
+              .maybeSingle();
+            
+            if (lastPeriodLog) {
+              // End the cycle at the last period day
+              await supabase
+                .from('cycles')
+                .update({ end_date: lastPeriodLog.log_date })
+                .eq('id', openCycle.id);
+            }
+          }
+        }
+      }
+      
       setIsSubmitted(true);
+      toast({
+        title: "Log saved successfully",
+        description: "Your period data has been recorded",
+      });
       
       // Reset form after 2 seconds
       setTimeout(() => {
@@ -94,7 +199,17 @@ const LogForm = () => {
         setEnergyLevel([50]);
         setIsSubmitted(false);
       }, 2000);
-    }, 1500);
+      
+    } catch (error: any) {
+      toast({
+        title: "Error saving log",
+        description: error.message || "An error occurred while saving your log",
+        variant: "destructive",
+      });
+      console.error("Error saving log:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -149,7 +264,7 @@ const LogForm = () => {
                 
                 <div className="flex flex-col space-y-2">
                   <label className="font-medium">Flow</label>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-4 gap-3">
                     {flowLevels.map((level) => (
                       <Button
                         key={level.id}

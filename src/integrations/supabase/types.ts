@@ -9,6 +9,86 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      cycles: {
+        Row: {
+          created_at: string
+          end_date: string | null
+          id: string
+          notes: string | null
+          start_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          notes?: string | null
+          start_date: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          notes?: string | null
+          start_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      period_logs: {
+        Row: {
+          created_at: string
+          cycle_id: string | null
+          flow_intensity: string | null
+          id: string
+          log_date: string
+          mood: string | null
+          notes: string | null
+          pain_level: number | null
+          symptoms: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          cycle_id?: string | null
+          flow_intensity?: string | null
+          id?: string
+          log_date: string
+          mood?: string | null
+          notes?: string | null
+          pain_level?: number | null
+          symptoms?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          cycle_id?: string | null
+          flow_intensity?: string | null
+          id?: string
+          log_date?: string
+          mood?: string | null
+          notes?: string | null
+          pain_level?: number | null
+          symptoms?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "period_logs_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "cycles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
