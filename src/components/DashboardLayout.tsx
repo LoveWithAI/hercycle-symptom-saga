@@ -9,7 +9,8 @@ import {
   PlusCircle, 
   Menu, 
   X,
-  LogOut
+  LogOut,
+  Crown
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { useAuth } from '@/contexts/AuthContext';
@@ -31,6 +32,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
     { icon: Calendar, label: 'Calendar', path: '/dashboard/calendar' },
     { icon: LineChart, label: 'Insights', path: '/dashboard/insights' },
+    { icon: Crown, label: 'Premium', path: '/premium' },
     { icon: Settings, label: 'Settings', path: '/dashboard/settings' },
   ];
 

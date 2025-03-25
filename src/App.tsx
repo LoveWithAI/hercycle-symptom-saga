@@ -12,6 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import Log from "./pages/Log";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Premium from "./pages/Premium";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,11 @@ const App = () => (
             <Route path="/log" element={
               <ProtectedRoute>
                 <Log />
+              </ProtectedRoute>
+            } />
+            <Route path="/premium" element={
+              <ProtectedRoute>
+                <Premium />
               </ProtectedRoute>
             } />
             <Route path="*" element={<NotFound />} />
