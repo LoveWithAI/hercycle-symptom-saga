@@ -9,6 +9,8 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
+import DashboardCalendar from "./pages/DashboardCalendar";
+import DashboardInsights from "./pages/DashboardInsights";
 import Log from "./pages/Log";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -30,6 +32,16 @@ const App = () => (
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/calendar" element={
+              <ProtectedRoute>
+                <DashboardCalendar />
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/insights" element={
+              <ProtectedRoute>
+                <DashboardInsights />
               </ProtectedRoute>
             } />
             <Route path="/log" element={
