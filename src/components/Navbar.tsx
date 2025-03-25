@@ -3,11 +3,13 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Menu, X } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const { user, signOut } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -35,8 +37,6 @@ const Navbar = () => {
     { name: 'About', path: '/#about' },
   ];
 
-  const isAuthenticated = false; // This will be replaced with actual auth state
-
   return (
     <nav className={navbarClasses}>
       <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -59,10 +59,19 @@ const Navbar = () => {
           </div>
           
           <div className="flex space-x-3">
-            {isAuthenticated ? (
-              <Button asChild variant="ghost" className="font-medium">
-                <Link to="/dashboard">Dashboard</Link>
-              </Button>
+            {user ? (
+              <>
+                <Button asChild variant="ghost" className="font-medium">
+                  <Link to="/dashboard">Dashboard</Link>
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  className="font-medium"
+                  onClick={() => signOut()}
+                >
+                  Log out
+                </Button>
+              </>
             ) : (
               <>
                 <Button asChild variant="ghost" className="font-medium">
@@ -105,10 +114,21 @@ const Navbar = () => {
           ))}
           
           <div className="pt-4 flex flex-col space-y-3">
-            {isAuthenticated ? (
-              <Button asChild className="w-full">
-                <Link to="/dashboard">Dashboard</Link>
-              </Button>
+            {user ? (
+              <>
+                <Button asChild className="w-full">
+                  <Link to="/dashboard">Dashboard</Link>
+                </Button>
+                <Button 
+                  className="w-full"
+                  onClick={() => {
+                    signOut();
+                    setIsMobileMenuOpen(false);
+                  }}
+                >
+                  Log out
+                </Button>
+              </>
             ) : (
               <>
                 <Button asChild variant="outline" className="w-full">

@@ -1,10 +1,12 @@
 
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from '@/hooks/use-toast';
 
 interface AuthFormProps {
   mode: 'login' | 'register';
@@ -15,18 +17,23 @@ const Auth: React.FC<AuthFormProps> = ({ mode }) => {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const { signIn, signUp, isLoading } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     
-    // In a real app, this would connect to Supabase
-    console.log('Form submitted with:', { email, password, name });
-    
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 1500);
+    try {
+      if (mode === 'login') {
+        await signIn(email, password);
+      } else {
+        await signUp(email, password, name);
+        navigate('/login');
+      }
+    } catch (error) {
+      // Error is handled in the Auth context
+      console.error('Authentication error:', error);
+    }
   };
 
   const togglePasswordVisibility = () => {

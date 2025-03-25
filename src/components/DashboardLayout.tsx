@@ -12,6 +12,7 @@ import {
   LogOut
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import { useAuth } from '@/contexts/AuthContext';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -20,6 +21,7 @@ interface DashboardLayoutProps {
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const location = useLocation();
+  const { signOut } = useAuth();
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -34,6 +36,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
   const isActive = (path: string) => {
     return location.pathname === path;
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
   };
 
   return (
@@ -93,6 +99,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             <Button
               variant="ghost"
               className="w-full justify-start text-foreground/70 hover:text-foreground"
+              onClick={handleSignOut}
             >
               <LogOut size={18} className="mr-2" />
               <span>Logout</span>
@@ -152,6 +159,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
               <Button
                 variant="ghost"
                 className="w-full justify-start text-foreground/70 hover:text-foreground"
+                onClick={() => {
+                  handleSignOut();
+                  toggleSidebar();
+                }}
               >
                 <LogOut size={18} className="mr-2" />
                 <span>Logout</span>
